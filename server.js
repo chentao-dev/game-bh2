@@ -48,7 +48,7 @@ var server = http.createServer(function (request, response) {
     content = fs.readFileSync(`public${filePath}`);
   } catch (error) {
     content = "文件不存在";
-    request.statusCode = 404;
+    response.statusCode = 404;
   }
   //写入响应体
   response.write(content);
