@@ -26,7 +26,6 @@ var server = http.createServer(function (request, response) {
   response.statusCode = 200;
   //没写文件路径时, 默认请求主页
   let filePath = path === "/" ? "/index.html" : path;
-  console.log(filePath);
   //文件后缀
   let suffix = filePath.replace(/.*\./, "");
   //后缀支持的类型
