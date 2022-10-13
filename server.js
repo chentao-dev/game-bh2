@@ -1,6 +1,7 @@
 var http = require("http");
 var fs = require("fs");
 var url = require("url");
+const { unescape } = require("querystring");
 var port = process.argv[2];
 
 if (!port) {
@@ -19,47 +20,79 @@ var server = http.createServer(function (request, response) {
   var query = parsedUrl.query;
   var method = request.method;
 
-  /******** 从这里开始看，上面不要看 ************/
+  // ********获取目录里的所有文件名**********
+  const dir = './public';
+  let imageNameArr = []
+  fs.readdir(dir, (err, files) => {
+    if (err) {
+      throw err;
+    }
+    files.forEach(file => {
+      if (file !== 'index.html' && file !== 'bg.jpg') {
+        imageNameArr.push(file.split('.')[0])
+      }
+    });
+    console.log(imageNameArr);
+    // 根据图片数量, 追加标签
+    let htmlStr = ''
+    for (let i = 0; i < imageNameArr.length; i++) {
+      htmlStr += `
+      <details>
+          <summary>${imageNameArr[i]}</summary>
+          <img src="${imageNameArr[i]}.jpg" alt="" width="100%">
+      </details>
+    `
+    }
 
-  console.log("有个傻子发请求过来啦！路径（带查询参数）为：" + pathWithQuery);
+    /******** 从这里开始看，上面不要看 ************/
+    console.log("有个傻子发请求过来啦！路径（带查询参数）为：" + decodeURI(pathWithQuery));
+    response.statusCode = 200;
+    //没路径请求主页, 有路径写路径(解码以防中文)
+    let filePath = path === "/" ? "/index.html" : decodeURI(path);
+    //文件后缀
+    let suffix = filePath.replace(/.*\./, "");
+    //后缀支持的类型
+    ContentTypes = {
+      html: "text/html",
+      css: "text/css",
+      js: "text/javascript",
+      png: "image/png",
+      jpg: "image/jpeg",
+    };
+    //设置响应体格式 (没支持的用text/html兜底)
+    response.setHeader(
+      "Content-Type",
+      `${ContentTypes[suffix] || "text/html"};charset=utf-8`
+    );
+    //读取文件
+    let content;
+    try {
+      if (filePath === '/index.html') {
+        content = fs.readFileSync(`public${filePath}`).toString();
+        content = content.replace('{{n}}', htmlStr)
+      } else {
+        content = fs.readFileSync(`public${filePath}`);
+      }
+    } catch (error) {
+      content = "文件不存在";
+      response.statusCode = 404;
+    }
 
-  response.statusCode = 200;
-  //没写文件路径时, 默认请求主页
-  let filePath = path === "/" ? "/index.html" : path;
-  //文件后缀
-  let suffix = filePath.replace(/.*\./, "");
-  //后缀支持的类型
-  ContentTypes = {
-    html: "text/html",
-    css: "text/css",
-    js: "text/javascript",
-    png: "image/png",
-    jpg: "image/jpeg",
-  };
-  //设置响应体格式 (没支持的用text/html兜底)
-  response.setHeader(
-    "Content-Type",
-    `${ContentTypes[suffix] || "text/html"};charset=utf-8`
-  );
-  //读取请求的文件, 全部存放于public下
-  let content;
-  try {
-    content = fs.readFileSync(`public${filePath}`);
-  } catch (error) {
-    content = "文件不存在";
-    response.statusCode = 404;
-  }
-  //写入响应体
-  response.write(content);
-  response.end();
+    //写入响应体
+    response.write(content);
+    response.end();
 
-  /******** 代码结束，下面不要看 ************/
+    /******** 代码结束，下面不要看 ************/
+  })
+
+
+
 });
 
 server.listen(port);
 console.log(
   "监听 " +
-    port +
-    " 成功\n请用在空中转体720度然后用电饭煲打开 http://localhost:" +
-    port
+  port +
+  " 成功\n请用在空中转体720度然后用电饭煲打开 http://localhost:" +
+  port
 );
