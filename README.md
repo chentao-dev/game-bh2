@@ -1,6 +1,6 @@
 ## 运行服务
 ```
-  node server.js 8888
+node server.js 8888
 ```
 
 ## 脚本运行服务
