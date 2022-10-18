@@ -15,7 +15,9 @@ fs.readdir('./public/img', (err, files) => {
     return console.log('目录不存在')
   }
   console.log(files);   //['功能.jpg','垃圾屋.jpg','投喂.jpg']
-  let htmlStr = ''         //根据文件名,拼接标签
+
+  //根据文件名,拼接标签
+  let htmlStr = ''
   for (let i = 0; i < files.length; i++) {
     htmlStr += `
     <details>
